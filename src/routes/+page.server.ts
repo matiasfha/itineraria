@@ -1,5 +1,6 @@
 import type { Actions } from './$types';
-import { zfd } from 'zod-form-data';
+import pkg from 'zod-form-data';
+const { zfd } = pkg;
 import { z } from 'zod';
 import { error, fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
@@ -52,7 +53,7 @@ function generatePrompt(data: z.infer<typeof schema>) {
 	const request =
 		'Generate the itinerary options for the above context in spanish. Include a list of at least 5 points of interest based on the result of your previous taks.';
 
-	return `${intro} ${context} ${request}. Rule: Your anwser cannot be longer than 2048 characters`;
+	return `${intro} ${context} ${request}. Rule: Your anwser cannot be longer than 4096 characters. Also, do not repeat activities if the numbers of days is less than 4, if is greater than 4, you can repeat location and activities only twice`;
 }
 
 const configuration = new Configuration({
@@ -66,8 +67,9 @@ async function requestGPT(prompt: string) {
 			{
 				model: 'text-davinci-003',
 				prompt,
-				max_tokens: 2048,
-				temperature: 0
+				max_tokens: 4096,
+				temperature: 0.2,
+				presence_penalty: 0.5
 			},
 			{
 				timeout: 250000
