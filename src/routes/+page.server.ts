@@ -23,7 +23,8 @@ export const actions = {
 			const dataObject = schema.parse(data);
 			const prompt = generatePrompt(dataObject);
 			const result = await requestGPT(prompt);
-			return { success: true, result: marked.parse(result) };
+			console.log(result)
+			return { success: true, result: marked.parse(result as string) };
 	} catch(err) {
 		console.log(err);
 		throw error(500, 'Something went wrong');
@@ -34,26 +35,24 @@ export const actions = {
 function generatePrompt(data: z.infer<typeof schema>) {
 	const { location, family, kids, days, experiences } = data;
 
-	const intro = `You are a travel advisor. You help families and individuals to plan their travels and vacations to allow them to 
-	enjoy the places their visit at maximum level. You provide advise and ideas of places to visit, activities to enjoy, places to eat, etc.
-	You help anyone that asks you provinding them with an itinerary for all the days they ask. Each itinerary option have at least 2 activities 
-	to perform during the day: one in the morning and one in the afternoon. Based on preference (if romantic or gastronomy was selected as desirable experiece) you may or may not provide a night activity.
-	Now let's anwser the following request based on the context given.`;
+	const intro = `You are a travel advisor. You help families and individuals to plan their vacations. You provide advise and ideas of places to visit, activities to enjoy, places to eat, etc.
+	You answer with an itinerary for the visit. 2 activies per day minimum, split by morning/afternoon.
+	Provide night activity if romantic or gastronomy was selected as experiece.
+	Anwser based on the follwing context and request.`;
 
-	let context = `Context: I'll be traveling to ${location} staying there for ${days} nights. I'm looking to enjoy different experiences 
-	like the following (but not limited): ${experiences.join(',')}.`;
+	let context = `Context:I'll travel to ${location}  for ${days} nights. I want to enjoy different experiences like (but not limited): ${experiences.join(',')}.`;
 
 	if (family) {
 		context = `${context} I'm traveling with my family.`;
 	}
 	if (kids) {
-		context = `${context} I'm also travling with my ${kids} kids.\n`;
+		context = `${context} I'm traveling with ${kids} kids.\n`;
 	}
 
 	const request =
-		'Generate the itinerary options for the above context in spanish. Include a list of at least 5 points of interest based on the result of your previous taks.';
+		'The result shoud be in spanish. Include 5 points of interest based on the result.';
 
-	return `${intro} ${context} ${request}. Rule: Your anwser cannot be longer than 4096 characters. Also, do not repeat activities if the numbers of days is less than 4, if is greater than 4, you can repeat location and activities only twice`;
+	return `${intro} ${context} ${request}. Rules: anwser cannot be longer than 3192 characters. do not repeat activities if the numbers of days is less than 4`;
 }
 
 const configuration = new Configuration({
@@ -67,7 +66,7 @@ async function requestGPT(prompt: string) {
 			{
 				model: 'text-davinci-003',
 				prompt,
-				max_tokens: 4096,
+				max_tokens: 3192,
 				temperature: 0.2,
 				presence_penalty: 0.5
 			},

@@ -139,7 +139,7 @@
 	</form>
 	<div class="pt-20 border-indigo-100 border rounded-md bg-indigo-200 prose prose-lg">
 		{#if loading} 
-			<p>Pensando...</p> 
+			<p>Pensando...Se demora un tiempo, ten paciencia</p> 
 		{/if}
 	{#if form?.success}
 		
